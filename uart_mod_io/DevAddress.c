@@ -15,25 +15,25 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/eeprom.h>
-#include "I2CAddress.h"
+#include "DevAddress.h"
 
 /* DEFINE LOCAL TYPES HERE */
 
 /* DEFINE LOCAL CONSTANTS HERE */
-#define I2C_ADDRESS_EEADDRESS 0x00
+#define Dev_ADDRESS_EEADDRESS 0x00
 
 // this is the value that has to be shifted to the left!
 // this means that you can set addresses from 1 - 127
-#define I2C_DEFAULT_ADDRESS 0x58
+#define Dev_DEFAULT_ADDRESS 0x58
 
 /* DECLARE EXTERNAL VARIABLES HERE */
 
 /* DEFINE LOCAL MACROS HERE */
 
 /* DEFINE LOCAL VARIABLES HERE */
-static uint8_t localI2CAddress;
+static uint8_t localDevAddress;
 
-uint8_t ee_I2CAddress __attribute__((section(".eeprom"))) = I2C_DEFAULT_ADDRESS;
+uint8_t ee_DevAddress __attribute__((section(".eeprom"))) = Dev_DEFAULT_ADDRESS;
 
 /* DECLARE EXTERNAL VARIABLES HERE */
 
@@ -42,70 +42,70 @@ uint8_t ee_I2CAddress __attribute__((section(".eeprom"))) = I2C_DEFAULT_ADDRESS;
 /* DEFINE FUNCTIONS HERE */
 
 /******************************************************************************
-* Description: I2C_Address_Initialize(..) - initializes EEPROM and reads the default address
+* Description: Dev_Address_Initialize(..) - initializes EEPROM and reads the default address
 * Input: 	none
 * Output: 	none
 * Return:	0 if successfully initialized, -1 if error occurred 
 *******************************************************************************/
-char I2C_Address_Initialize(void)
+char Dev_Address_Initialize(void)
 {
 	char result = 0;
 	
-	localI2CAddress = I2C_DEFAULT_ADDRESS;
+	localDevAddress = Dev_DEFAULT_ADDRESS;
 	
 	// read address stored in EEPROM
 	eeprom_busy_wait();
-	localI2CAddress = eeprom_read_byte(I2C_ADDRESS_EEADDRESS);
+	localDevAddress = eeprom_read_byte(Dev_ADDRESS_EEADDRESS);
 	
 	return result;
 }
 
 /******************************************************************************
-* Description: I2C_Address_Get(..) - gets the current I2C address of the devide
+* Description: Dev_Address_Get(..) - gets the current Dev address of the devide
 * Input: 	none
 * Output: 	none
-* Return:	the current I2C address 
+* Return:	the current Dev address 
 *******************************************************************************/
-uint8_t I2C_Address_Get(void)
+uint8_t Dev_Address_Get(void)
 {
-	return localI2CAddress;
+	return localDevAddress;
 }
 
 /******************************************************************************
-* Description: I2C_Address_Set(..) - sets a new address of the I2C of the device
+* Description: Dev_Address_Set(..) - sets a new address of the Dev of the device
 *		Stores it to internal EEPROM
 * Input: 	none
 * Output: 	none
 * Return:	0 if successfully updated, -1 if error occurred 
 *******************************************************************************/
-char I2C_Address_Set(uint8_t addr)
+char Dev_Address_Set(uint8_t addr)
 {
 	char result = 0;
 
 	// update address here	
 	eeprom_busy_wait();
 	cli();
-	eeprom_write_byte(I2C_ADDRESS_EEADDRESS, addr);
+	eeprom_write_byte(Dev_ADDRESS_EEADDRESS, addr);
 	sei();
 
 	// verify that data is correct
 	eeprom_busy_wait();
-	result = (addr == eeprom_read_byte(I2C_ADDRESS_EEADDRESS)) ? 0 : -1;
+	result = (addr == eeprom_read_byte(Dev_ADDRESS_EEADDRESS)) ? 0 : -1;
 
 	if(!result)
-		localI2CAddress = addr;
+		localDevAddress = addr;
 			
 	return result;	
 }
 
 /******************************************************************************
-* Description: I2C_Address_SetDefault(..) - sets a the default I2C address
+* Description: Dev_Address_SetDefault(..) - sets a the default Dev address
 *		Stores it to internal EEPROM
 * Input: 	none
 * Output: 	none
 * Return:	0 if successfully updated, -1 if error occurred 
 *******************************************************************************/
-char I2C_Address_SetDefault(void)
+char Dev_Address_SetDefault(void)
 {
-	return I2C_Address_Set(I2C_DEFAULT_ADDRESS);
+	return Dev_Address_Set(Dev_DEFAULT_ADDRESS);
 }

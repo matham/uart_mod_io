@@ -19,7 +19,7 @@
 #include "DigitalINs.h"
 #include "AnalogINs.h"
 #include "DigitalOUTs.h"
-#include "I2CAddress.h"
+#include "DevAddress.h"
 #include "I2C_FSM.h"
 
 /* DEFINE LOCAL TYPES HERE */
@@ -77,7 +77,7 @@ static I2C_FSM_STATES i2c_state;
 char I2C_FSM_Initialize(void)
 {
 	// configure the I2C module
-	TWAR = I2C_Address_Get() << 1;
+	TWAR = Dev_Address_Get() << 1;
 	TWSR = 0x00;
 	TWCR = (1<<TWEN) | (1<<TWEA) | (1<<TWIE);
 	
@@ -172,9 +172,9 @@ ISR(TWI_vect)
 				case I2C_FSM_WAIT_ADDRUPDATE:
 					// only update address if button is pressed
 					if( BtnPressed() ) {
-						if( I2C_Address_Set(TWDR) == 0) {
+						if( Dev_Address_Set(TWDR) == 0) {
 							// immediately update own address
-							TWAR = I2C_Address_Get() << 1;
+							TWAR = Dev_Address_Get() << 1;
 
 							addressUpdatedIndTimeout = 500000;
 						}

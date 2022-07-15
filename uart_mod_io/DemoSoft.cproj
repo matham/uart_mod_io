@@ -91,7 +91,10 @@
     <Compile Include="I2C_FSM.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="I2CAddress.c">
+    <Compile Include="DevAddress.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="UART_FSM.c">
       <SubType>compile</SubType>
     </Compile>
   </ItemGroup>

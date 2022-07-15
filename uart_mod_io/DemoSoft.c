@@ -12,6 +12,12 @@
  *       Description : Create
  *
  **************************************************************************/
+
+ #define BOARD_INTERFACE_I2C 1
+ #define BOARD_INTERFACE_UART 2
+ #define BOARD_INTERFACE BOARD_INTERFACE_UART
+
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/fuse.h>
@@ -19,8 +25,12 @@
 #include "DigitalINs.h"
 #include "AnalogINs.h"
 #include "DigitalOUTs.h"
-#include "I2CAddress.h"
-#include "I2C_FSM.h"
+#include "DevAddress.h"
+#if BOARD_INTERFACE == BOARD_INTERFACE_UART
+	#include "UART_FSM.h"
+#else
+	#include "I2C_FSM.h"
+#endif
 
 FUSES = 
 {
@@ -66,8 +76,12 @@ int main(void)
 
 		// button pressed long enough, reset to default
 		if(!delay) {
-			I2C_Address_SetDefault();
+			Dev_Address_SetDefault();
+#if BOARD_INTERFACE == BOARD_INTERFACE_UART
+			UART_FSM_Initialize(); // load the new address
+#else
 			I2C_FSM_Initialize(); // load the new address
+#endif
 		}
 	}
 
@@ -75,7 +89,11 @@ int main(void)
 		
     while(1)
     {
-		I2C_FSM_Refresh();
+#if BOARD_INTERFACE == BOARD_INTERFACE_UART
+			UART_FSM_Refresh();
+#else
+			I2C_FSM_Refresh();
+#endif
 
 		// toggle LED to indicate activity
 		if( (delay--) == 0 ) {
@@ -98,9 +116,14 @@ static void InitializeSystem(void)
 	result |= DINs_Initialize();
 	result |= AINs_Initialize();
 	result |= DOUTs_Initialize();
-	result |= I2C_Address_Initialize();
+	result |= Dev_Address_Initialize();
+
+#if BOARD_INTERFACE == BOARD_INTERFACE_UART
+	result |= UART_FSM_Initialize();
+#else
 	result |= I2C_FSM_Initialize();
-	
+#endif
+
 	// check for error
 	if(result) {
 		uint32_t delay;

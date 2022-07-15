@@ -3,8 +3,8 @@
  *
  *    (c) Copyright Olimex 2011
  *
- *    File name   : I2CAddress.h
- *    Description : gets/sets the I2C address of the device from/to EEPROM
+ *    File name   : DevAddress.h
+ *    Description : gets/sets the Dev address of the device from/to EEPROM
  *
  *    History :
  *    1. Date        : 07 November 2011
@@ -13,41 +13,41 @@
  *
  **************************************************************************/
 
-#ifndef I2C_ADDRESS_H
-#define I2C_ADDRESS_H
+#ifndef DEV_ADDRESS_H
+#define DEV_ADDRESS_H
 
 /******************************************************************************
-* Description: I2C_Address_Initialize(..) - initializes EEPROM and reads the default address
+* Description: Dev_Address_Initialize(..) - initializes EEPROM and reads the default address
 * Input: 	none
 * Output: 	none
 * Return:	0 if successfully initialized, -1 if error occurred 
 *******************************************************************************/
-char I2C_Address_Initialize(void);
+char Dev_Address_Initialize(void);
 
 /******************************************************************************
-* Description: I2C_Address_Get(..) - gets the current I2C address of the devide
+* Description: Dev_Address_Get(..) - gets the current Dev address of the devide
 * Input: 	none
 * Output: 	none
-* Return:	the current I2C address 
+* Return:	the current Dev address 
 *******************************************************************************/
-uint8_t I2C_Address_Get(void);
+uint8_t Dev_Address_Get(void);
 
 /******************************************************************************
-* Description: I2C_Address_Set(..) - sets a new address of the I2C of the device
+* Description: Dev_Address_Set(..) - sets a new address of the Dev of the device
 *		Stores it to internal EEPROM
 * Input: 	none
 * Output: 	none
 * Return:	0 if successfully updated, -1 if error occurred 
 *******************************************************************************/
-char I2C_Address_Set(uint8_t addr);
+char Dev_Address_Set(uint8_t addr);
 
 /******************************************************************************
-* Description: I2C_Address_SetDefault(..) - sets a the default I2C address
+* Description: Dev_Address_SetDefault(..) - sets a the default Dev address
 *		Stores it to internal EEPROM
 * Input: 	none
 * Output: 	none
 * Return:	0 if successfully updated, -1 if error occurred 
 *******************************************************************************/
-char I2C_Address_SetDefault(void);
+char Dev_Address_SetDefault(void);
 
-#endif // I2C_ADDRESS_H
+#endif // DEV_ADDRESS_H
