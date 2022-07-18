@@ -1,15 +1,8 @@
 /*************************************************************************
  *
  *
- *    (c) Copyright Olimex 2011
- *
- *    File name   : DigitalIns.h
- *    Description : configures and reads the digital inputs of the board
- *
- *    History :
- *    1. Date        : 07 November 2011
- *       Author      : Aleksandar Mitev
- *       Description : Create
+ *    File name   : UART_FSM.h
+ *    Description : runs the UART
  *
  **************************************************************************/
 #include <avr/io.h>
@@ -40,13 +33,13 @@ typedef enum _UART_COMMAND_CODES {
 	UART_GET_AIN_1,
 	UART_GET_AIN_2,
 	UART_GET_AIN_3,
-	UART_SET_SLAVE_ADDR = 0xF0
+	UART_SET_SLAVE_ADDR = 0x40
 } UART_COMMAND_CODES;
 
 /* DEFINE LOCAL CONSTANTS HERE */
 #define TX_BUF_LENGTH 2
-#define UCSRA_VAL 0
-#define UCSRB_VAL ((1 << RXCIE) | (1 << RXEN) | (1 << UCSZ2))
+#define UCSRB_VAL ((1 << RXCIE) | (1 << RXEN))
+#define ADDRESS_FLAG 0b10000000
 
 /* DECLARE EXTERNAL VARIABLES HERE */
 
@@ -75,12 +68,11 @@ static uint8_t bufIndex;
 char UART_FSM_Initialize(void)
 {
 	// configure the UART module
-	// multi-processor mode
-	UCSRA = 1 << MPCM;
-	// 8MHz crystal, 9600 baud
-	UBRRL = 51;
-	// async, even parity, 1 stop bit, 9 bit
-	UCSRC = (1 << URSEL) | (1 << UPM1) | (1 << UCSZ0) | (1 << UCSZ1);
+	UCSRA = 0;
+	// 8MHz crystal, 19.2k baud
+	UBRRL = 25;
+	// async, no parity, 1 stop bit, 8 bit
+	UCSRC = (1 << URSEL) | (1 << UCSZ0) | (1 << UCSZ1);
 	// keep transmitter disabled for now. Disable transmit empty interrupt
 	UCSRB = UCSRB_VAL;
 	devAddress = Dev_Address_Get();
@@ -150,18 +142,11 @@ void UART_FSM_Refresh(void)
 
 ISR(USART_RXC_vect)
 {
-	uint8_t data;
-	// got new data item
-	if (UCSRA & ((1 << FE) | (1 << DOR) | (1 << PE)))
-		return;
-
-	data = UDR;
+	uint8_t data = UDR;
 
 	switch(uart_state) {
 		case UART_FSM_IDLE:
-			if (data == devAddress) {
-				// disable mpcm and wait for the next command byte
-				UCSRA = UCSRA_VAL;
+			if (data & ADDRESS_FLAG && ((data & ~ADDRESS_FLAG) == devAddress)) {
 				uart_state = UART_FSM_WAIT_COMMAND;
 			}
 			break;
@@ -188,7 +173,6 @@ ISR(USART_RXC_vect)
 				default:
 					// dunno what happened, just go back to waiting
 					uart_state = UART_FSM_IDLE;
-					UCSRA = UCSRA_VAL | (1 << MPCM);
 					break;
 			}
 
@@ -197,7 +181,6 @@ ISR(USART_RXC_vect)
 			DOUTs_Set(data);
 			// back to normal
 			uart_state = UART_FSM_IDLE;
-			UCSRA = UCSRA_VAL | (1 << MPCM);
 			break;
 		case UART_FSM_WAIT_ADDRUPDATE:
 			// only update address if button is pressed
@@ -210,7 +193,6 @@ ISR(USART_RXC_vect)
 			}
 			// back to normal
 			uart_state = UART_FSM_IDLE;
-			UCSRA = UCSRA_VAL | (1 << MPCM);
 			break;
 		case UART_FSM_READING:
 		case UART_FSM_WRITING:
@@ -230,7 +212,6 @@ ISR(USART_UDRE_vect){
 					// done so disable tx and back to waiting
 					UCSRB = UCSRB_VAL;
 					uart_state = UART_FSM_IDLE;
-					UCSRA = UCSRA_VAL | (1 << MPCM);
 					break;
 				case UART_GET_AIN_0:
 				case UART_GET_AIN_1:
@@ -244,7 +225,6 @@ ISR(USART_UDRE_vect){
 						// done so disable tx and back to waiting
 						UCSRB = UCSRB_VAL;
 						uart_state = UART_FSM_IDLE;
-						UCSRA = UCSRA_VAL | (1 << MPCM);
 					}
 					break;
 				default:
@@ -256,7 +236,6 @@ ISR(USART_UDRE_vect){
 			UCSRB = UCSRB_VAL;
 			// back to waiting
 			uart_state = UART_FSM_IDLE;
-			UCSRA = UCSRA_VAL | (1 << MPCM);
 			break;
 	}
 
